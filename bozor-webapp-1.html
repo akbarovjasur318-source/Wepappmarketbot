@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SexShop — Do'kon</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500;1,9..144,600&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1E1226;
+    --bg-deep: #150C1B;
+    --surface: #2C1B37;
+    --surface-2: #382345;
+    --line: #46304F;
+    --amber: #E8A33D;
+    --amber-dim: #B9822F;
+    --green: #4F9D69;
+    --red: #D9645A;
+    --text: #F5EFE6;
+    --text-muted: #C7B8CF;
+    --text-faint: #8A7591;
+    --radius: 18px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    background-image:
+      radial-gradient(ellipse 600px 400px at 15% -5%, rgba(232,163,61,0.10), transparent),
+      radial-gradient(ellipse 500px 500px at 100% 20%, rgba(79,157,105,0.08), transparent);
+    padding-bottom: 90px;
+  }
+
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
+
+  /* ---------- Header ---------- */
+  header.top {
+    position: sticky; top: 0; z-index: 30;
+    background: rgba(30,18,38,0.88);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+    padding: 16px 18px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { display: flex; align-items: baseline; gap: 8px; }
+  .brand .mark {
+    font-family: 'Fraunces', serif; font-style: italic; font-weight: 600;
+    font-size: 23px; color: var(--amber); letter-spacing: 0.2px;
+  }
+  .brand .tag { font-size: 11px; color: var(--text-faint); font-weight: 500; letter-spacing: 0.3px; }
+
+  .cart-btn {
+    position: relative; width: 42px; height: 42px; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .cart-btn:active { transform: scale(0.92); }
+  .cart-btn svg { width: 19px; height: 19px; stroke: var(--text); }
+  .cart-badge {
+    position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px;
+    background: var(--amber); color: var(--bg-deep); font-size: 10px; font-weight: 800;
+    border-radius: 9px; display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; font-family: 'Manrope', sans-serif;
+  }
+
+  /* ---------- Category chips ---------- */
+  .chips { display: flex; gap: 8px; padding: 14px 18px 4px; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0; padding: 7px 15px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
+    background: var(--surface); border: 1px solid var(--line); color: var(--text-muted);
+    cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+  }
+  .chip.active { background: var(--amber); color: var(--bg-deep); border-color: var(--amber); }
+
+  /* ---------- Product grid ---------- */
+  .grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    padding: 16px 18px 8px;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .card:active { transform: scale(0.97); }
+  .card .thumb {
+    width: 100%; aspect-ratio: 1/0.85; display: flex; align-items: center; justify-content: center;
+    font-size: 40px; position: relative;
+  }
+  .card .thumb::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(30,18,38,0.35) 100%);
+  }
+  .card .info { padding: 10px 12px 12px; }
+  .card .name { font-size: 13.5px; font-weight: 600; line-height: 1.3; margin-bottom: 6px; min-height: 34px; }
+  .card .row { display: flex; align-items: center; justify-content: space-between; }
+  .card .price { font-family: 'JetBrains Mono', monospace; font-size: 13.5px; font-weight: 700; color: var(--amber); }
+  .card .add {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--surface-2);
+    border: 1px solid var(--line); display: flex; align-items: center; justify-content: center;
+    color: var(--text); font-size: 16px; font-weight: 700; transition: all 0.15s ease;
+  }
+  .card .add:active { background: var(--amber); color: var(--bg-deep); border-color: var(--amber); transform: scale(0.9); }
+  .card .stock-low { font-size: 10px; color: var(--red); font-weight: 600; margin-top: 4px; }
+
+  /* ---------- Bottom sheet base ---------- */
+  .sheet-backdrop {
+    position: fixed; inset: 0; background: rgba(10,5,14,0.6); backdrop-filter: blur(2px);
+    z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+  }
+  .sheet-backdrop.show { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 51;
+    max-width: 480px; margin: 0 auto;
+    background: var(--bg-deep); border-radius: 22px 22px 0 0; border: 1px solid var(--line); border-bottom: none;
+    max-height: 88vh; overflow-y: auto;
+    transform: translateY(100%); transition: transform 0.32s cubic-bezier(.22,.9,.32,1);
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  .sheet.show { transform: translateY(0); }
+  .sheet-handle { width: 36px; height: 4px; background: var(--line); border-radius: 3px; margin: 10px auto 4px; }
+  .sheet-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px 14px; border-bottom: 1px solid var(--line);
+  }
+  .sheet-head h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 19px; }
+  .sheet-close { color: var(--text-faint); font-size: 22px; cursor: pointer; line-height: 1; padding: 4px; }
+
+  /* ---------- Cart ---------- */
+  .cart-list { padding: 6px 20px; }
+  .cart-item {
+    display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line);
+  }
+  .cart-item .thumb-sm {
+    width: 54px; height: 54px; border-radius: 12px; background: var(--surface);
+    display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;
+  }
+  .cart-item .body { flex: 1; min-width: 0; }
+  .cart-item .name { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+  .cart-item .ctrl { display: flex; align-items: center; justify-content: space-between; }
+  .qty-stepper { display: flex; align-items: center; gap: 0; background: var(--surface); border-radius: 9px; border: 1px solid var(--line); }
+  .qty-stepper button {
+    width: 28px; height: 28px; background: none; border: none; color: var(--text); font-size: 15px;
+    cursor: pointer; font-family: 'Manrope', sans-serif; font-weight: 700;
+  }
+  .qty-stepper span { min-width: 22px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+  .cart-item .price { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--amber); font-size: 13.5px; }
+  .cart-empty { padding: 60px 20px; text-align: center; color: var(--text-faint); }
+  .cart-empty .icon { font-size: 40px; margin-bottom: 10px; opacity: 0.6; }
+
+  .sheet-footer { padding: 16px 20px 4px; border-top: 1px solid var(--line); }
+  .sum-row { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--text-muted); margin-bottom: 8px; }
+  .sum-row.total { font-size: 16px; font-weight: 800; color: var(--text); margin-top: 10px; }
+  .sum-row .v { font-family: 'JetBrains Mono', monospace; }
+
+  .btn {
+    display: block; width: 100%; text-align: center; padding: 15px; border-radius: 14px;
+    font-weight: 700; font-size: 14.5px; border: none; cursor: pointer; font-family: 'Manrope', sans-serif;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--amber); color: var(--bg-deep); }
+  .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--line); }
+  .btn:disabled { opacity: 0.4; pointer-events: none; }
+
+  /* ---------- Checkout ---------- */
+  .section-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    color: var(--text-faint); padding: 18px 20px 8px;
+  }
+  .back-link { color: var(--amber); cursor: pointer; text-transform: none; letter-spacing: 0; font-weight: 700; }
+  .district-list { padding: 0 20px; display: flex; flex-direction: column; gap: 8px; }
+  .district-opt {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 15px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 13px;
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .district-opt.sel { border-color: var(--amber); background: rgba(232,163,61,0.08); }
+  .district-opt .d-name { font-size: 13.5px; font-weight: 600; }
+  .district-opt .d-km { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+  .district-opt .d-fee { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--amber); }
+
+  .pay-methods { padding: 0 20px; display: flex; gap: 10px; }
+  .pay-opt {
+    flex: 1; padding: 14px 10px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 13px;
+    text-align: center; cursor: pointer; transition: all 0.15s ease;
+  }
+  .pay-opt.sel { border-color: var(--green); background: rgba(79,157,105,0.1); }
+  .pay-opt .p-icon { font-size: 22px; margin-bottom: 6px; }
+  .pay-opt .p-name { font-size: 12.5px; font-weight: 700; }
+  .pay-opt .p-sub { font-size: 10px; color: var(--text-faint); margin-top: 2px; }
+
+  .prepay-box {
+    margin: 14px 20px 0; padding: 16px; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(232,163,61,0.14), rgba(232,163,61,0.04));
+    border: 1px solid rgba(232,163,61,0.35);
+  }
+  .prepay-box .pp-title { font-size: 12px; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .prepay-box .pp-amount { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; color: var(--text); }
+  .prepay-box .pp-note { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
+
+  /* ---------- Receipt (chek) confirmation ---------- */
+  .receipt-wrap { padding: 10px 20px 4px; }
+  .receipt {
+    background: #F5EFE6; color: #2C1B37; border-radius: 4px; position: relative;
+    padding: 26px 22px 22px; font-family: 'JetBrains Mono', monospace;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+  }
+  .receipt::before, .receipt::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 14px;
+    background-image: radial-gradient(circle 7px, var(--bg-deep) 7px, transparent 7.5px);
+    background-size: 20px 14px; background-repeat: repeat-x;
+  }
+  .receipt::before { top: -7px; }
+  .receipt::after { bottom: -7px; background-position: 10px 0; }
+  .receipt .r-head { text-align: center; margin-bottom: 14px; }
+  .receipt .r-shop { font-family: 'Fraunces', serif; font-style: italic; font-weight: 600; font-size: 18px; }
+  .receipt .r-sub { font-size: 10px; letter-spacing: 1px; opacity: 0.6; margin-top: 2px; }
+  .receipt .r-divider { border-top: 1.5px dashed #2C1B37; opacity: 0.3; margin: 12px 0; }
+  .receipt .r-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+  .receipt .r-code {
+    text-align: center; font-size: 20px; font-weight: 700; letter-spacing: 3px;
+    padding: 10px 0; margin: 10px 0;
+  }
+  .receipt .r-stamp {
+    position: absolute; top: 34px; right: 18px; transform: rotate(-14deg);
+    border: 2.5px solid var(--red); color: var(--red); font-weight: 800; font-size: 11px;
+    padding: 4px 9px; border-radius: 6px; letter-spacing: 1px; opacity: 0.85;
+    font-family: 'Manrope', sans-serif;
+  }
+
+  .status-track { padding: 20px; }
+  .step { display: flex; gap: 12px; position: relative; padding-bottom: 26px; }
+  .step:last-child { padding-bottom: 0; }
+  .step::before {
+    content: ''; position: absolute; left: 11px; top: 26px; bottom: 0; width: 2px; background: var(--line);
+  }
+  .step:last-child::before { display: none; }
+  .step.done::before { background: var(--green); }
+  .step .dot {
+    width: 24px; height: 24px; border-radius: 50%; background: var(--surface); border: 2px solid var(--line);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; font-size: 12px;
+  }
+  .step.done .dot { background: var(--green); border-color: var(--green); }
+  .step.active .dot { background: var(--amber); border-color: var(--amber); }
+  .step .s-body { padding-top: 2px; }
+  .step .s-title { font-size: 13.5px; font-weight: 700; }
+  .step .s-time { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+  .step.pending .s-title { color: var(--text-faint); }
+
+  .instructions {
+    margin: 14px 20px; padding: 14px 16px; background: var(--surface); border-radius: 13px; border: 1px solid var(--line);
+    font-size: 12.5px; color: var(--text-muted); line-height: 1.6;
+  }
+  .instructions b { color: var(--text); }
+
+  /* ---------- Floating checkout bar ---------- */
+  .float-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; max-width: 480px; margin: 0 auto;
+    padding: 12px 18px calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(0deg, var(--bg) 60%, transparent);
+  }
+  .float-bar .inner {
+    background: var(--amber); border-radius: 16px; padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(232,163,61,0.25); cursor: pointer;
+  }
+  .float-bar .fb-left { display: flex; flex-direction: column; }
+  .float-bar .fb-label { font-size: 10.5px; color: rgba(21,12,27,0.7); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .float-bar .fb-total { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 15px; color: var(--bg-deep); }
+  .float-bar .fb-cta { color: var(--bg-deep); font-weight: 800; font-size: 13.5px; display: flex; align-items: center; gap: 4px; }
+
+  .hidden { display: none !important; }
+
+  /* ---------- Splash screen ---------- */
+  .splash {
+    position: fixed; inset: 0; z-index: 100;
+    background: radial-gradient(ellipse 700px 500px at 50% 30%, #3A2246, var(--bg-deep));
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .splash-glow {
+    position: absolute; width: 340px; height: 340px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,163,61,0.35), transparent 70%);
+    animation: glowPulse 2.6s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { transform: scale(0.9); opacity: 0.6; }
+    50% { transform: scale(1.15); opacity: 1; }
+  }
+  .splash-particle {
+    position: absolute; bottom: -20px; border-radius: 50%;
+    background: var(--amber); opacity: 0.5;
+    animation: floatUp linear infinite;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(-520px) translateX(var(--drift, 20px)); opacity: 0; }
+  }
+  .splash-mark {
+    font-family: 'Fraunces', serif; font-style: italic; font-weight: 600;
+    font-size: 46px; color: var(--amber); letter-spacing: 0.5px; position: relative; z-index: 2;
+    opacity: 0; transform: translateY(14px) scale(0.94);
+    animation: markIn 0.85s cubic-bezier(.2,.9,.25,1.1) 0.15s forwards;
+  }
+  @keyframes markIn {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .splash-tag {
+    font-size: 13px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;
+    margin-top: 10px; position: relative; z-index: 2;
+    opacity: 0; animation: tagIn 0.7s ease 0.6s forwards;
+  }
+  @keyframes tagIn { to { opacity: 1; } }
+  .splash-bar {
+    width: 120px; height: 3px; border-radius: 3px; background: var(--surface-2);
+    margin-top: 28px; overflow: hidden; position: relative; z-index: 2;
+    opacity: 0; animation: tagIn 0.5s ease 0.9s forwards;
+  }
+  .splash-bar::after {
+    content: ''; position: absolute; inset: 0; background: var(--amber);
+    transform-origin: left; animation: barFill 1.1s ease 1s forwards;
+  }
+  @keyframes barFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .splash.leaving { animation: splashOut 0.5s ease forwards; pointer-events: none; }
+  @keyframes splashOut { to { opacity: 0; transform: scale(1.03); } }
+
+  .app { opacity: 0; }
+  .app.reveal { opacity: 1; transition: opacity 0.4s ease; }
+  .app.reveal header.top { animation: riseIn 0.5s cubic-bezier(.2,.9,.25,1.1) both; }
+  .app.reveal .chips { animation: riseIn 0.5s cubic-bezier(.2,.9,.25,1.1) 0.08s both; }
+  .app.reveal .grid .card { animation: riseIn 0.45s cubic-bezier(.2,.9,.25,1.1) both; }
+  @keyframes riseIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="splash" id="splash">
+  <div class="splash-glow"></div>
+  <div class="splash-mark">SexShop</div>
+  <div class="splash-tag">yetkazib berish xizmati</div>
+  <div class="splash-bar"></div>
+</div>
+
+<div class="app" id="app">
+
+  <header class="top">
+    <div class="brand">
+      <span class="mark">SexShop</span>
+      <span class="tag">yetkazib berish</span>
+    </div>
+    <div class="cart-btn" onclick="openCart()">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+      <span class="cart-badge hidden" id="cartBadge">0</span>
+    </div>
+  </header>
+
+  <div class="chips" id="chips"></div>
+  <div class="grid" id="grid"></div>
+
+</div>
+
+<!-- Floating checkout bar -->
+<div class="float-bar hidden" id="floatBar">
+  <div class="inner" onclick="openCart()">
+    <div class="fb-left">
+      <span class="fb-label">Savat</span>
+      <span class="fb-total" id="fbTotal">0 so'm</span>
+    </div>
+    <div class="fb-cta">Savatni ko'rish →</div>
+  </div>
+</div>
+
+<!-- Cart sheet -->
+<div class="sheet-backdrop" id="cartBackdrop" onclick="closeSheet('cart')"></div>
+<div class="sheet" id="cartSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <h2>Savat</h2>
+    <span class="sheet-close" onclick="closeSheet('cart')">✕</span>
+  </div>
+  <div class="cart-list" id="cartList"></div>
+  <div class="sheet-footer" id="cartFooter"></div>
+</div>
+
+<!-- Checkout sheet -->
+<div class="sheet-backdrop" id="checkoutBackdrop" onclick="closeSheet('checkout')"></div>
+<div class="sheet" id="checkoutSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <h2>Buyurtmani rasmiylashtirish</h2>
+    <span class="sheet-close" onclick="closeSheet('checkout')">✕</span>
+  </div>
+
+  <div class="section-label" id="locationLabel">Viloyatni tanlang</div>
+  <div class="district-list" id="districtList"></div>
+
+  <div class="section-label">To'lov turi</div>
+  <div class="pay-methods" id="payMethods">
+    <div class="pay-opt" data-pay="cash" onclick="selectPay('cash')">
+      <div class="p-icon">💵</div>
+      <div class="p-name">Naqd</div>
+      <div class="p-sub">30% oldindan + qolgani kuryerga</div>
+    </div>
+    <div class="pay-opt" data-pay="card" onclick="selectPay('card')">
+      <div class="p-icon">💳</div>
+      <div class="p-name">Karta</div>
+      <div class="p-sub">60% oldindan + qolgani kuryerga</div>
+    </div>
+  </div>
+
+  <div class="prepay-box hidden" id="prepayBox">
+    <div class="pp-title" id="prepayTitle">Oldindan to'lov (majburiy)</div>
+    <div class="pp-amount" id="prepayAmount">0 so'm</div>
+    <div class="pp-note" id="prepayNote">Buyurtmangizni bron qilib qo'yish uchun ko'rsatilgan summa oldindan (karta orqali chek bilan) to'lanadi. Bu — behuda sarf-xarajatlardan saqlanib, sizga sifatli xizmat ko'rsatishimiz uchun kerak. 🤝</div>
+  </div>
+
+  <div class="sheet-footer">
+    <div class="sum-row"><span>Mahsulotlar</span><span class="v" id="coSubtotal">0 so'm</span></div>
+    <div class="sum-row"><span>Yetkazib berish</span><span class="v" id="coDelivery">— tanlanmagan</span></div>
+    <div class="sum-row total"><span>Jami</span><span class="v" id="coTotal">0 so'm</span></div>
+    <button class="btn btn-primary" id="confirmBtn" style="margin-top:14px" disabled onclick="confirmOrder()">Buyurtmani tasdiqlash</button>
+  </div>
+</div>
+
+<!-- Order confirmation sheet -->
+<div class="sheet-backdrop" id="orderBackdrop" onclick="closeSheet('order')"></div>
+<div class="sheet" id="orderSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <h2>Buyurtma qabul qilindi</h2>
+    <span class="sheet-close" onclick="closeSheet('order')">✕</span>
+  </div>
+
+  <div class="receipt-wrap">
+    <div class="receipt">
+      <div class="r-stamp" id="rStamp">TASDIQLANMOQDA</div>
+      <div class="r-head">
+        <div class="r-shop">Bozor</div>
+        <div class="r-sub">BUYURTMA CHEKI</div>
+      </div>
+      <div class="r-code" id="rCode">#A0000</div>
+      <div class="r-divider"></div>
+      <div id="rItems"></div>
+      <div class="r-divider"></div>
+      <div class="r-row"><span>Mahsulotlar</span><span id="rSubtotal">0</span></div>
+      <div class="r-row"><span>Yetkazib berish</span><span id="rDelivery">0</span></div>
+      <div class="r-row" style="font-weight:700"><span>Jami summa</span><span id="rTotal">0</span></div>
+      <div class="r-divider"></div>
+      <div class="r-row" style="font-weight:700"><span>Oldindan to'lov (30%)</span><span id="rPrepay">0</span></div>
+      <div class="r-row"><span id="rRemainLabel">Qolgan</span><span id="rRemain">0</span></div>
+    </div>
+  </div>
+
+  <div class="instructions" id="payInstructions"></div>
+
+  <div class="section-label">Buyurtma holati</div>
+  <div class="status-track" id="statusTrack"></div>
+
+  <div class="sheet-footer" style="border-top:none">
+    <button class="btn btn-ghost" onclick="closeSheet('order')">Do'konga qaytish</button>
+  </div>
+</div>
+
+<script>
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); }
+
+// ---------- Backend API konfiguratsiyasi ----------
+// Botni serverga joylashtirganingdan keyin shu manzilni o'zgartir:
+const API_BASE = "http://localhost:8080"; // masalan: "https://sizning-domeningiz.com"
+
+let CATEGORIES = ['Barchasi'];
+let PRODUCTS = [];
+let REGIONS = [];
+
+async function loadProducts() {
+  try {
+    const res = await fetch(`${API_BASE}/api/products`);
+    const data = await res.json();
+    PRODUCTS = data.map(p => ({
+      id: p.id, name: p.name, price: p.price,
+      emoji: p.emoji || '📦', cat: p.category, stock: p.stock
+    }));
+    CATEGORIES = ['Barchasi', ...new Set(PRODUCTS.map(p => p.cat))];
+  } catch (e) {
+    console.error("Mahsulotlarni yuklab bo'lmadi:", e);
+    document.getElementById('grid').innerHTML = `<div style="grid-column:1/-1;padding:40px 10px;text-align:center;color:var(--text-faint);font-size:13px;">Mahsulotlarni yuklab bo'lmadi.<br>Backend serveri ishlamayotgan bo'lishi mumkin.</div>`;
+  }
+}
+
+async function loadRegions() {
+  try {
+    const res = await fetch(`${API_BASE}/api/regions`);
+    REGIONS = await res.json();
+  } catch (e) {
+    console.error("Hududlarni yuklab bo'lmadi:", e);
+  }
+}
+
+function deliveryFee(km) {
+  if (km <= 100) return 30000;
+  const extraSteps = Math.ceil((km - 100) / 100);
+  return 30000 + extraSteps * 20000;
+}
+
+// ---------- State ----------
+
+// ---------- State ----------
+let cart = {};        // id -> qty
+let activeCat = 'Barchasi';
+let selectedRegion = null;
+let selectedDistrict = null;
+let selectedPay = null;
+
+const fmt = n => n.toLocaleString('ru-RU').replace(/,/g, ' ') + " so'm";
+
+// ---------- Render catalog ----------
+function renderChips() {
+  const el = document.getElementById('chips');
+  el.innerHTML = CATEGORIES.map(c =>
+    `<div class="chip ${c===activeCat?'active':''}" onclick="setCat('${c}')">${c}</div>`
+  ).join('');
+}
+function setCat(c) { activeCat = c; renderChips(); renderGrid(); }
+
+function renderGrid() {
+  const el = document.getElementById('grid');
+  const list = PRODUCTS.filter(p => activeCat === 'Barchasi' || p.cat === activeCat);
+  el.innerHTML = list.map((p, i) => `
+    <div class="card" style="animation-delay:${Math.min(i * 0.05, 0.4)}s" onclick="quickAdd(${p.id})">
+      <div class="thumb" style="background: radial-gradient(circle at 30% 20%, ${cardColor(p.id)}22, transparent 70%), var(--surface-2);">${p.emoji}</div>
+      <div class="info">
+        <div class="name">${p.name}</div>
+        <div class="row">
+          <span class="price">${fmt(p.price)}</span>
+          <div class="add" onclick="event.stopPropagation(); quickAdd(${p.id})">+</div>
+        </div>
+        ${p.stock <= 3 ? `<div class="stock-low">Faqat ${p.stock} dona qoldi</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+function cardColor(id) { const c = ['#E8A33D','#4F9D69','#D9645A','#8A7591']; return c[id % c.length]; }
+
+function quickAdd(id) {
+  cart[id] = (cart[id] || 0) + 1;
+  if (tg) tg.HapticFeedback.impactOccurred('light');
+  updateCartUI();
+}
+
+// ---------- Cart ----------
+function cartCount() { return Object.values(cart).reduce((a,b)=>a+b, 0); }
+function cartSubtotal() {
+  return Object.entries(cart).reduce((sum,[id,qty]) => {
+    const p = PRODUCTS.find(x => x.id == id);
+    return sum + (p ? p.price * qty : 0);
+  }, 0);
+}
+
+function updateCartUI() {
+  const count = cartCount();
+  const badge = document.getElementById('cartBadge');
+  const bar = document.getElementById('floatBar');
+  badge.textContent = count;
+  badge.classList.toggle('hidden', count === 0);
+  bar.classList.toggle('hidden', count === 0);
+  document.getElementById('fbTotal').textContent = fmt(cartSubtotal());
+  renderCartList();
+}
+
+function renderCartList() {
+  const el = document.getElementById('cartList');
+  const footer = document.getElementById('cartFooter');
+  const entries = Object.entries(cart).filter(([,q]) => q > 0);
+
+  if (entries.length === 0) {
+    el.innerHTML = `<div class="cart-empty"><div class="icon">🧺</div>Savat bo'sh<br>Mahsulot tanlab qo'shing</div>`;
+    footer.innerHTML = '';
+    return;
+  }
+
+  el.innerHTML = entries.map(([id, qty]) => {
+    const p = PRODUCTS.find(x => x.id == id);
+    return `
+      <div class="cart-item">
+        <div class="thumb-sm">${p.emoji}</div>
+        <div class="body">
+          <div class="name">${p.name}</div>
+          <div class="ctrl">
+            <div class="qty-stepper">
+              <button onclick="changeQty(${id}, -1)">−</button>
+              <span>${qty}</span>
+              <button onclick="changeQty(${id}, 1)">+</button>
+            </div>
+            <span class="price">${fmt(p.price * qty)}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  footer.innerHTML = `
+    <div class="sum-row total"><span>Jami</span><span class="v">${fmt(cartSubtotal())}</span></div>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="goCheckout()">Rasmiylashtirish</button>
+  `;
+}
+
+function changeQty(id, delta) {
+  cart[id] = (cart[id] || 0) + delta;
+  if (cart[id] <= 0) delete cart[id];
+  updateCartUI();
+}
+
+// ---------- Sheets ----------
+function openSheet(name) {
+  document.getElementById(name + 'Backdrop').classList.add('show');
+  document.getElementById(name + 'Sheet').classList.add('show');
+}
+function closeSheet(name) {
+  document.getElementById(name + 'Backdrop').classList.remove('show');
+  document.getElementById(name + 'Sheet').classList.remove('show');
+}
+function openCart() { updateCartUI(); openSheet('cart'); }
+
+// ---------- Checkout ----------
+function goCheckout() {
+  closeSheet('cart');
+  selectedRegion = null;
+  selectedDistrict = null;
+  renderDistricts();
+  document.getElementById('payMethods').querySelectorAll('.pay-opt').forEach(el => el.classList.remove('sel'));
+  document.getElementById('prepayBox').classList.add('hidden');
+  selectedPay = null;
+  updateCheckoutSummary();
+  setTimeout(() => openSheet('checkout'), 150);
+}
+
+function currentDistrict() {
+  const r = REGIONS.find(x => x.id === selectedRegion);
+  if (!r) return null;
+  return r.districts.find(x => x.id === selectedDistrict) || null;
+}
+
+function renderDistricts() {
+  const el = document.getElementById('districtList');
+  const label = document.getElementById('locationLabel');
+
+  // Step 1: viloyat tanlanmagan
+  if (!selectedRegion) {
+    label.textContent = "Viloyatni tanlang";
+    el.innerHTML = REGIONS.map(r => `
+      <div class="district-opt" onclick="selectRegion('${r.id}')">
+        <div>
+          <div class="d-name">${r.icon} ${r.name}</div>
+          <div class="d-km">${r.districts.length} ta tuman/shahar</div>
+        </div>
+        <div class="d-fee">›</div>
+      </div>
+    `).join('');
+    return;
+  }
+
+  // Step 2: viloyat tanlangan → tumanlar
+  const region = REGIONS.find(x => x.id === selectedRegion);
+  label.innerHTML = `<span class="back-link" onclick="backToRegions()">‹ Viloyatlar</span> — ${region.name}`;
+  el.innerHTML = region.districts.map(d => `
+    <div class="district-opt ${selectedDistrict===d.id?'sel':''}" onclick="selectDistrict('${d.id}')">
+      <div>
+        <div class="d-name">${d.name}</div>
+        <div class="d-km">~${d.km} km</div>
+      </div>
+      <div class="d-fee">${fmt(deliveryFee(d.km))}</div>
+    </div>
+  `).join('');
+}
+
+function selectRegion(id) {
+  selectedRegion = id;
+  selectedDistrict = null;
+  renderDistricts();
+  updateCheckoutSummary();
+}
+
+function backToRegions() {
+  selectedRegion = null;
+  selectedDistrict = null;
+  renderDistricts();
+  updateCheckoutSummary();
+}
+
+function selectDistrict(id) {
+  selectedDistrict = id;
+  renderDistricts();
+  updateCheckoutSummary();
+}
+
+const PREPAY_PERCENT_CASH = 30;
+const PREPAY_PERCENT_CARD = 60;
+
+function selectPay(type) {
+  selectedPay = type;
+  document.querySelectorAll('.pay-opt').forEach(el => el.classList.toggle('sel', el.dataset.pay === type));
+  updateCheckoutSummary();
+}
+
+function updateCheckoutSummary() {
+  const subtotal = cartSubtotal();
+  const d = currentDistrict();
+  const fee = d ? deliveryFee(d.km) : 0;
+  const total = subtotal + fee;
+
+  document.getElementById('coSubtotal').textContent = fmt(subtotal);
+  document.getElementById('coDelivery').textContent = d ? fmt(fee) : '— tanlanmagan';
+  document.getElementById('coTotal').textContent = fmt(total);
+
+  const percent = selectedPay === 'card' ? PREPAY_PERCENT_CARD : PREPAY_PERCENT_CASH;
+  const prepay = Math.round(total * percent / 100);
+  const remain = total - prepay;
+  document.getElementById('prepayAmount').textContent = fmt(prepay);
+  document.getElementById('prepayBox').classList.toggle('hidden', !selectedPay);
+  document.getElementById('prepayTitle').textContent = `Oldindan to'lov — ${percent}% (majburiy)`;
+
+  const note = document.getElementById('prepayNote');
+  if (selectedPay === 'cash') {
+    note.textContent = `Buyurtmangizni bron qilib qo'yish uchun umumiy summaning ${percent}% i (${fmt(prepay)}) oldindan karta orqali chek bilan to'lanadi. Qolgan ${fmt(remain)} ni mahsulot yetib kelganda kuryerga naqd to'laysiz.`;
+  } else if (selectedPay === 'card') {
+    note.textContent = `Buyurtmangizni bron qilib qo'yish uchun umumiy summaning ${percent}% i (${fmt(prepay)}) oldindan karta orqali chek bilan to'lanadi. Qolgan ${fmt(remain)} ni ham xuddi shu tarzda kartaga to'laysiz.`;
+  }
+
+  document.getElementById('confirmBtn').disabled = !(selectedDistrict && selectedPay);
+}
+
+// ---------- Confirm order (backendga yuboriladi) ----------
+async function confirmOrder() {
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'Yuborilmoqda...';
+
+  const tgUser = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
+  const payload = {
+    user_id: tgUser ? tgUser.id : 0,
+    username: tgUser ? tgUser.username : null,
+    items: Object.entries(cart).filter(([,q]) => q > 0).map(([id, qty]) => ({ product_id: Number(id), qty })),
+    region_id: selectedRegion,
+    district_id: selectedDistrict,
+    pay_type: selectedPay,
+  };
+
+  let result;
+  try {
+    const res = await fetch(`${API_BASE}/api/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Xatolik');
+  } catch (e) {
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = 'Buyurtmani tasdiqlash';
+    alert("Buyurtma yuborilmadi. Internetni tekshirib qayta urinib ko'ring.");
+    return;
+  }
+
+  const { order_code, subtotal, delivery_fee, total, prepay_amount, prepay_percent, remain_amount, payment_card } = result;
+
+  document.getElementById('rCode').textContent = order_code;
+  document.getElementById('rItems').innerHTML = payload.items.map(it => {
+    const p = PRODUCTS.find(x => x.id === it.product_id);
+    return `<div class="r-row"><span>${p.name} ×${it.qty}</span><span>${fmt(p.price * it.qty)}</span></div>`;
+  }).join('');
+  document.getElementById('rSubtotal').textContent = fmt(subtotal);
+  document.getElementById('rDelivery').textContent = fmt(delivery_fee);
+  document.getElementById('rTotal').textContent = fmt(total);
+  document.getElementById('rPrepay').textContent = fmt(prepay_amount);
+  document.getElementById('rRemain').textContent = fmt(remain_amount);
+  document.getElementById('rRemainLabel').textContent = selectedPay === 'cash' ? "Qolgan (kuryerga naqd)" : "Qolgan (kartaga)";
+  document.getElementById('rStamp').textContent = "TO'LOV KUTILMOQDA";
+
+  const instr = document.getElementById('payInstructions');
+  const remainText = selectedPay === 'cash'
+    ? `Qolgan ${fmt(remain_amount)} ni mahsulot yetib kelganda kuryerga naqd to'laysiz.`
+    : `Qolgan ${fmt(remain_amount)} ni ham xuddi shu kartaga to'laysiz.`;
+  instr.innerHTML = `<b>Keyingi qadam:</b> ${fmt(prepay_amount)} so'mni (${prepay_percent}%, majburiy) quyidagi kartaga o'tkazing, so'ng to'lov chekining screenshotini shu botga yuboring (caption'ga <b>${order_code}</b> yozing). Admin tekshirib, buyurtmangizni tasdiqlaydi.<br><br><b>Karta:</b> ${payment_card}<br><br>${remainText}`;
+
+  renderStatusTrack(0);
+
+  cart = {};
+  updateCartUI();
+  btn.disabled = false;
+  btn.textContent = 'Buyurtmani tasdiqlash';
+  closeSheet('checkout');
+  setTimeout(() => openSheet('order'), 150);
+}
+
+function renderStatusTrack(activeIndex) {
+  const steps = [
+    { title: "Yangi buyurtma", time: "hozir" },
+    { title: "Qabul qilindi", time: "kutilmoqda" },
+    { title: "Yo'lda", time: "kutilmoqda" },
+    { title: "Yetkazildi", time: "kutilmoqda" },
+  ];
+  const el = document.getElementById('statusTrack');
+  el.innerHTML = steps.map((s, i) => {
+    const cls = i < activeIndex ? 'done' : i === activeIndex ? 'active' : 'pending';
+    const icon = i < activeIndex ? '✓' : '';
+    return `
+      <div class="step ${cls}">
+        <div class="dot">${icon}</div>
+        <div class="s-body">
+          <div class="s-title">${s.title}</div>
+          <div class="s-time">${i === activeIndex ? 'joriy holat' : s.time}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ---------- Splash screen ----------
+function spawnSplashParticles() {
+  const splash = document.getElementById('splash');
+  const count = 14;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'splash-particle';
+    const size = 3 + Math.random() * 5;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = (10 + Math.random() * 80) + '%';
+    p.style.setProperty('--drift', (Math.random() * 60 - 30) + 'px');
+    p.style.animationDuration = (2.8 + Math.random() * 2.2) + 's';
+    p.style.animationDelay = (Math.random() * 2) + 's';
+    splash.appendChild(p);
+  }
+}
+
+function dismissSplash() {
+  const splash = document.getElementById('splash');
+  const app = document.getElementById('app');
+  splash.classList.add('leaving');
+  app.classList.add('reveal');
+  setTimeout(() => splash.remove(), 550);
+}
+
+// ---------- Init ----------
+async function init() {
+  spawnSplashParticles();
+  document.getElementById('grid').innerHTML = `<div style="grid-column:1/-1;padding:40px 10px;text-align:center;color:var(--text-faint);font-size:13px;">Yuklanmoqda...</div>`;
+  const minSplashTime = new Promise(resolve => setTimeout(resolve, 1400));
+  await Promise.all([loadProducts(), loadRegions(), minSplashTime]);
+  renderChips();
+  renderGrid();
+  updateCartUI();
+  dismissSplash();
+}
+init();
+</script>
+</body>
+</html>
